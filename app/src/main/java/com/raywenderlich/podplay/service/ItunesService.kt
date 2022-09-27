@@ -1,6 +1,6 @@
 package com.raywenderlich.podplay.service
 
-import com.android.volley.Response
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET

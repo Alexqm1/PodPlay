@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 import javax.xml.parsers.DocumentBuilderFactory
 
 class RssFeedService private constructor() {
-    suspend fun getFeed(xmlFileURL: String, function: () -> Unit): RssFeedResponse? {
+    suspend fun getFeed(xmlFileURL: String): RssFeedResponse? {
         // 1
         val service: FeedService
 // 2
@@ -61,11 +61,7 @@ class RssFeedService private constructor() {
         }
         return null
     }
-    companion object {
-        val instance: RssFeedService by lazy {
-            RssFeedService()
-        }
-    }
+
     private fun domToRssFeedResponse(node: Node, rssFeedResponse:
     RssFeedResponse) {
         // 1
@@ -73,21 +69,6 @@ class RssFeedService private constructor() {
             // 2
             val nodeName = node.nodeName
             val parentName = node.parentNode.nodeName
-            // 3
-            if (parentName == "channel") {
-                // 4
-                when (nodeName) {
-                    "title" -> rssFeedResponse.title = node.textContent
-                    "description" -> rssFeedResponse.description =
-                        node.textContent
-                    "itunes:summary" -> rssFeedResponse.summary =
-                        node.textContent
-                    "item" -> rssFeedResponse.episodes?.
-                    add(RssFeedResponse.EpisodeResponse())
-                    "pubDate" -> rssFeedResponse.lastUpdated =
-                        DateUtils.xmlDateToDate(node.textContent)
-                }
-            }
             // 1
             val grandParentName = node.parentNode.parentNode?.nodeName ?: ""
             // 2
@@ -114,23 +95,31 @@ class RssFeedService private constructor() {
                     }
                 }
             }
+      if (parentName == "channel") {
+        when (nodeName) {
+          "title" -> rssFeedResponse.title = node.textContent
+          "description" -> rssFeedResponse.description = node.textContent
+          "itunes:summary" -> rssFeedResponse.summary = node.textContent
+          "item" -> rssFeedResponse.episodes?.add(RssFeedResponse.EpisodeResponse())
+          "pubDate" -> rssFeedResponse.lastUpdated =
+              DateUtils.xmlDateToDate(node.textContent)
         }
-        // 5
+      }
+    }
         val nodeList = node.childNodes
         for (i in 0 until nodeList.length) {
             val childNode = nodeList.item(i)
             // 6
             domToRssFeedResponse(childNode, rssFeedResponse)
         }
+  }
+  companion object {
+    val instance: RssFeedService by lazy {
+      RssFeedService()
     }
+  }
 }
 interface FeedService {
-    object instance : FeedService {
-        override suspend fun getFeed(xmlFileURL: String): Response<ResponseBody> {
-            TODO("Not yet implemented")
-        }
-
-    }
 
     @Headers(
         "Content-Type: application/xml; charset=utf-8",

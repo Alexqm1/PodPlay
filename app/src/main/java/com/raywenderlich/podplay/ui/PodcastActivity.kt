@@ -19,8 +19,8 @@ import com.raywenderlich.podplay.adapter.PodcastListAdapter
 import com.raywenderlich.podplay.databinding.ActivityPodcastBinding
 import com.raywenderlich.podplay.repository.ItunesRepo
 import com.raywenderlich.podplay.repository.PodcastRepo
-import com.raywenderlich.podplay.service.FeedService
 import com.raywenderlich.podplay.service.ItunesService
+import com.raywenderlich.podplay.service.RssFeedService
 import com.raywenderlich.podplay.viewmodel.PodcastViewModel
 import com.raywenderlich.podplay.viewmodel.SearchViewModel
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +50,7 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
         setupToolbar()
         setupViewModels()
         updateControls()
+    createSubscription()
         handleIntent(intent)
         addBackStackListener()
     }
@@ -61,14 +62,15 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
         // 2
         searchMenuItem = menu.findItem(R.id.search_item)
         val searchView = searchMenuItem.actionView as SearchView
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            databinding.podcastRecyclerView.visibility = View.INVISIBLE
-        }
         // 3
         val searchManager = getSystemService(Context.SEARCH_SERVICE)
                 as SearchManager
         // 4
         searchView.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            databinding.podcastRecyclerView.visibility = View.INVISIBLE
+        }
+
         if (databinding.podcastRecyclerView.visibility ==
             View.INVISIBLE) {
             searchMenuItem.isVisible = false
@@ -108,7 +110,7 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
     private fun setupViewModels() {
         val service = ItunesService.instance
         searchViewModel.iTunesRepo = ItunesRepo(service)
-        podcastViewModel.podcastRepo = PodcastRepo(FeedService.instance)
+    podcastViewModel.podcastRepo = PodcastRepo(RssFeedService.instance)
 
     }
 
